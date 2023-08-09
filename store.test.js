@@ -189,6 +189,30 @@ describe("test todo reducer.", () => {
     }
   };
 
+  const visibilityFilter = (state = "SHOW_ALL", action) => {
+    switch (action.type) {
+      case "SET_VISIBILITY_FILTER":
+        return action.filter;
+      default:
+        return state;
+    }
+  };
+
+  // 결합된 Reducer의 초기 state에는 독립적인 Reducer의 초기 state가 포함된다.
+  // action에 매칭되는 reducer의 처리는 자식 reducer로.
+  const todoApp = (
+    state = {
+      todos: [],
+      visibilityFilter: "SHOW_ALL",
+    },
+    action
+  ) => {
+    return {
+      todos: todos(state.todos, action),
+      visibilityFilter: visibilityFilter(state.visibilityFilter, action),
+    };
+  };
+
   const stateBefore = [];
 
   const action = {
@@ -208,7 +232,7 @@ describe("test todo reducer.", () => {
   deepFreeze(action);
 
   test("add todo", () => {
-    expect(todos(stateBefore, action)).toEqual(stateAfter);
+    expect(todoApp({ todos: stateBefore }, action).todos).toEqual(stateAfter);
   });
 
   const toggleTodo = (payload) => ({
@@ -247,6 +271,19 @@ describe("test todo reducer.", () => {
     deepFreeze(stateBefore);
     deepFreeze(toggleTodoAction);
 
-    expect(todos(stateBefore, toggleTodoAction)).toEqual(stateAfter);
+    expect(todoApp({ todos: stateBefore }, toggleTodoAction).todos).toEqual(
+      stateAfter
+    );
+  });
+
+  test("visibility filter test", () => {
+    const action = { type: "SET_VISIBILITY_FILTER", filter: "SHOW_COMPLETE" };
+
+    const stateAfter = {
+      ...todoApp(undefined, { type: null }),
+      visibilityFilter: "SHOW_COMPLETE",
+    };
+
+    expect(todoApp(undefined, action)).toEqual(stateAfter);
   });
 });
