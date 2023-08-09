@@ -14,13 +14,62 @@ const deepFreeze = (o) => {
   if (o === Object(o)) {
     Object.isFrozen(o) || Object.isFrozen(o);
 
+    // 전달된 객체의 모든 속성(심볼을 사용하는 속성을 제외한 열거할 수 없는 속성 포함) 들을 배열로 반환.
+    // 배열의 열거할 수 있는 속성들의 순서는 for...in 반복문 또는 Object.keys 처리되는 순서와 일치함.
     Object.getOwnPropertyNames(o).forEach((prop) => {
+      // 현재 객체를 열거하면서 생성사를 제외한 프로퍼티들 또한 동일하게 동결함.
       prop === "constructor" || deepFreeze(o[prop]);
     });
   }
 
   return o;
 };
+
+const addCounter = (list, value = 0) => {
+  return [...list, value];
+};
+
+const removeCounter = (list, removeIndex) => {
+  return list.filter((row, index) => index !== removeIndex);
+};
+
+const incrementCounter = (list, incrementIndex) => {
+  return list.map((row, index) => (index === incrementIndex ? row + 1 : row));
+};
+
+const testAddCounter = () => {
+  const listBefore = [];
+  const listAfter = [0];
+  // addCounter는 state를 받고, state에 값이 없을 경우 0을 추가한 뒤 반환한다.
+
+  deepFreeze(listBefore);
+
+  expect(addCounter(listBefore)).toEqual(listAfter);
+};
+
+const testRemoveCounter = () => {
+  const listBefore = [0, 10, 20];
+  const listAfter = [0, 20];
+  // removeCounter는 첫 번째 인자로 배열을 받고, 두 번째 인자로 index를 받아 index에 해당하는 요소를 지운다.
+
+  deepFreeze(listBefore);
+
+  expect(removeCounter(listBefore, 1)).toEqual(listAfter);
+};
+
+const testIncrementCounter = () => {
+  const listBefore = [0, 10, 20];
+  const listAfter = [0, 11, 20];
+  // incrementCounter는 첫 번째 인자로 배열을 받고, 두 번째 인자에 해당하는 요소에 +1 해준다.
+
+  deepFreeze(listBefore);
+
+  expect(incrementCounter(listBefore, 1)).toEqual(listAfter);
+};
+
+testAddCounter();
+testRemoveCounter();
+testIncrementCounter();
 
 describe("얕은 동결 테스트", () => {
   const employee = {
@@ -37,7 +86,7 @@ describe("얕은 동결 테스트", () => {
 
   test("case1: 직속 데이터의 경우 변경이 불가능하다.", () => {
     employee.name = "babo";
-    expect(employee.name).toEqual("babo");
+    expect(employee.name).toEqual("geuni");
   });
 
   test("case2: 직속 데이터가 아닐 경우 변경 가능하다. -> 달라야 함.", () => {
